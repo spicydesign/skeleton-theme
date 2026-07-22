@@ -12,7 +12,8 @@
   {% block 'cart-hype', current_product: product %}{% endblock %}
 {% enddoc %}
 
-<div class="cart-hype" {{ block.shopify_attributes }} aria-live="polite">
+{% # Hidden until an add-to-cart happens on this page: reactions to the shopper's action, not ambient cart state. %}
+<div class="cart-hype" {{ block.shopify_attributes }} aria-live="polite" hidden>
   {% partial 'cart-hype' %}
     {% if cart.item_count == 1 %}
       <p class="cart-hype__message">{{ 'cart_hype.one' | t }}</p>

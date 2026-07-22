@@ -1,0 +1,69 @@
+{% doc %}
+  Renders an escalating encouragement message below the product form.
+  The message lives in a partial region so it can be refreshed after
+  each add-to-cart without a page reload: one item earns a hello, two
+  items a nudge, and three or more reveal a discount code.
+
+  @example
+  {% block 'cart-hype' %}{% endblock %}
+{% enddoc %}
+
+<div class="cart-hype" {{ block.shopify_attributes }} aria-live="polite">
+  {% partial 'cart-hype' %}
+    {% if cart.item_count == 1 %}
+      <p class="cart-hype__message">{{ 'cart_hype.one' | t }}</p>
+    {% elsif cart.item_count == 2 %}
+      <p class="cart-hype__message">{{ 'cart_hype.two' | t }}</p>
+    {% elsif cart.item_count >= 3 %}
+      <p class="cart-hype__message cart-hype__message--discount">
+        {{ 'cart_hype.many' | t: count: cart.item_count, code: block.settings.discount_code }}
+      </p>
+    {% endif %}
+  {% endpartial %}
+</div>
+
+{% stylesheet %}
+  .cart-hype__message {
+    margin-block: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background-color: #eef3ff;
+    animation: cart-hype-pop 0.45s ease-out;
+  }
+
+  .cart-hype__message--discount {
+    background-color: #fff3cd;
+    font-weight: 600;
+  }
+
+  @keyframes cart-hype-pop {
+    from {
+      transform: translateY(0.25rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cart-hype__message {
+      animation: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.cart_hype",
+  "settings": [
+    {
+      "type": "text",
+      "id": "discount_code",
+      "label": "t:labels.discount_code",
+      "default": "CANTGETENOUGH20"
+    }
+  ]
+}
+{% endschema %}

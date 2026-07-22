@@ -79,5 +79,10 @@
   },
   "featured_collection": {
     "view_all": "View all"
+  },
+  "cart_hype": {
+    "one": "You added one item to the cart!",
+    "two": "Amazing! You added two — how about this product?",
+    "many": "{{ count }} items! Oh, you can't get enough — we're giving you 20% off with code {{ code }}"
   }
 }

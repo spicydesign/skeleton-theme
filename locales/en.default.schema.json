@@ -41,7 +41,8 @@
     "sidebar": "Sidebar",
     "theme": "Theme",
     "typography": "Typography",
-    "featured_collection": "Featured collection"
+    "featured_collection": "Featured collection",
+    "cart_hype": "Cart hype"
   },
   "labels": {
     "alignment": "Alignment",
@@ -59,7 +60,8 @@
     "show_payment_icons": "Show payment icons",
     "heading": "Heading",
     "collection": "Collection",
-    "products_to_show": "Products to show"
+    "products_to_show": "Products to show",
+    "discount_code": "Discount code"
   },
   "options": {
     "alignment": {

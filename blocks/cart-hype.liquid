@@ -2,10 +2,14 @@
   Renders an escalating encouragement message below the product form.
   The message lives in a partial region so it can be refreshed after
   each add-to-cart without a page reload: one item earns a hello, two
-  items a nudge, and three or more reveal a discount code.
+  items a nudge with a suggested product from the store, and three or
+  more reveal a discount code.
+
+  @param {object} [current_product] - The product being viewed, so the
+    suggestion at two items can pick a different product.
 
   @example
-  {% block 'cart-hype' %}{% endblock %}
+  {% block 'cart-hype', current_product: product %}{% endblock %}
 {% enddoc %}
 
 <div class="cart-hype" {{ block.shopify_attributes }} aria-live="polite">
@@ -14,6 +18,39 @@
       <p class="cart-hype__message">{{ 'cart_hype.one' | t }}</p>
     {% elsif cart.item_count == 2 %}
       <p class="cart-hype__message">{{ 'cart_hype.two' | t }}</p>
+
+      {%- liquid
+        assign suggestion = blank
+        for candidate_collection in collections
+          for candidate in candidate_collection.products
+            unless candidate.id == current_product.id
+              assign suggestion = candidate
+              break
+            endunless
+          endfor
+          if suggestion != blank
+            break
+          endif
+        endfor
+      -%}
+
+      {% if suggestion != blank %}
+        <a class="cart-hype__suggestion" href="{{ suggestion.url }}">
+          {% if suggestion.featured_image %}
+            {% render 'image',
+              class: 'cart-hype__suggestion-image',
+              image: suggestion.featured_image,
+              width: 160,
+              height: 160,
+              crop: 'center'
+            %}
+          {% endif %}
+          <span>
+            <strong>{{ suggestion.title | escape }}</strong><br>
+            {{ suggestion.price | money }}
+          </span>
+        </a>
+      {% endif %}
     {% elsif cart.item_count >= 3 %}
       <p class="cart-hype__message cart-hype__message--discount">
         {{ 'cart_hype.many' | t: count: cart.item_count, code: block.settings.discount_code }}
@@ -47,8 +84,26 @@
     }
   }
 
+  .cart-hype__suggestion {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-block-start: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e0e6f5;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    animation: cart-hype-pop 0.45s ease-out;
+  }
+
+  .cart-hype__suggestion-image {
+    inline-size: 4rem;
+    flex: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .cart-hype__message {
+    .cart-hype__message,
+    .cart-hype__suggestion {
       animation: none;
     }
   }

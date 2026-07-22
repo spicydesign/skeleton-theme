@@ -37,7 +37,21 @@ function configureCartAction() {
   return true;
 }
 
-const actionsConfigured = configureCartAction();
+/*
+ * The actions runtime is injected by the storefront after page load, so
+ * it may not exist when this module evaluates. Retry briefly until it
+ * appears, then configure once.
+ */
+let actionsConfigured = configureCartAction();
+
+if (!actionsConfigured) {
+  let attempts = 0;
+  const timer = setInterval(() => {
+    actionsConfigured = configureCartAction();
+    attempts += 1;
+    if (actionsConfigured || attempts >= 40) clearInterval(timer);
+  }, 250);
+}
 
 async function addToCart(form) {
   const button = form.querySelector('[type="submit"]');

@@ -67,7 +67,13 @@ if (window.parent !== window) {
     if (kind !== "agent:updateCart") return;
 
     try {
-      const result = await window.Shopify.actions.updateCart(payload);
+      const lines = (payload?.lines ?? []).map((line) => {
+        if (line.merchandiseId) return line;
+        const id = document.querySelector('form[action*="/cart/add"] [name="id"]')?.value;
+        return { ...line, merchandiseId: `gid://shopify/ProductVariant/${id}` };
+      });
+
+      const result = await window.Shopify.actions.updateCart({ ...payload, lines });
       post({
         kind: "agent:result",
         ok: !result.userErrors?.length,

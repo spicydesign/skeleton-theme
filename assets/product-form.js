@@ -114,6 +114,7 @@ document.addEventListener("click", async (event) => {
   if (!btn) return;
 
   btn.setAttribute("aria-busy", "true");
+  const t0 = performance.now();
   try {
     const response = await fetch("/cart/change.js", {
       method: "POST",
@@ -125,7 +126,11 @@ document.addEventListener("click", async (event) => {
     await refreshCartUI();
     document.dispatchEvent(
       new CustomEvent("demo:cart-updated", {
-        detail: { itemCount: cartData.item_count, totalCents: cartData.total_price },
+        detail: {
+          itemCount: cartData.item_count,
+          totalCents: cartData.total_price,
+          ms: performance.now() - t0,
+        },
       }),
     );
   } catch (error) {

@@ -15,7 +15,12 @@ const stage = document.querySelector(".demo-stage");
 if (stage) {
   const ticker = stage.querySelector("[data-demo-ticker]");
   const payloadCount = stage.querySelector("[data-payload-count]");
+  const payloadMs = stage.querySelector("[data-payload-ms]");
   const typed = stage.querySelector("[data-typed]");
+
+  const showMs = (ms) => {
+    if (payloadMs) payloadMs.textContent = `${Math.round(ms)}ms`;
+  };
 
   const flash = (ids, amber = false) => {
     for (const id of ids) {
@@ -57,14 +62,17 @@ if (stage) {
   };
 
   document.addEventListener("shopify:cart:lines-update", (event) => {
+    const t0 = performance.now();
     log("evt", "evt", `shopify:cart:lines-update · action=${event.action ?? "—"} · context=${event.context ?? "—"}`);
     flash(["action-call", "handler"], true);
     runPipeline();
 
     event.promise?.then((result) => {
+      const ms = performance.now() - t0;
       const count = result?.cart?.totalQuantity;
       if (count == null) return;
       if (payloadCount) payloadCount.textContent = count;
+      showMs(ms);
       const tier = count >= 3 ? "tier3" : count === 2 ? "tier2" : "tier1";
       flash([
         "refresh", "refresh2", "partial-open", tier, "partial-close", "payload",
@@ -72,7 +80,7 @@ if (stage) {
         "mini-open", "mini-loop", "mini-total",
       ]);
       const total = result?.cart?.cost?.totalAmount?.amount;
-      log("net", "net", `partials re-rendered · cart now ${count} item${count === 1 ? "" : "s"}${total ? ` · $${total}` : ""}`);
+      log("net", "net", `partials re-rendered · cart now ${count} item${count === 1 ? "" : "s"}${total ? ` · $${total}` : ""} · ${Math.round(ms)}ms`);
     });
   });
 
@@ -131,11 +139,12 @@ if (stage) {
   });
 
   document.addEventListener("demo:cart-updated", (event) => {
-    const { itemCount, totalCents } = event.detail ?? {};
+    const { itemCount, totalCents, ms } = event.detail ?? {};
     if (itemCount == null) return;
     if (payloadCount) payloadCount.textContent = itemCount;
+    if (ms != null) showMs(ms);
     flash(["payload"]);
-    log("net", "net", `partials re-rendered · cart now ${itemCount} item${itemCount === 1 ? "" : "s"} · $${(totalCents / 100).toFixed(2)}`);
+    log("net", "net", `partials re-rendered · cart now ${itemCount} item${itemCount === 1 ? "" : "s"} · $${(totalCents / 100).toFixed(2)}${ms != null ? ` · ${Math.round(ms)}ms` : ""}`);
   });
 
   document.addEventListener("click", async (event) => {
@@ -145,9 +154,10 @@ if (stage) {
     flash(["spot-open", "spot-refresh"]);
     hotStep(4, "net");
     setTimeout(() => hotStep(5), 240);
+    const t0 = performance.now();
     try {
       await partials.refresh("product-spotlight");
-      log("net", "net", "product-spotlight re-rendered · new pick");
+      log("net", "net", `product-spotlight re-rendered · new pick · ${Math.round(performance.now() - t0)}ms`);
     } finally {
       btn.removeAttribute("aria-busy");
     }

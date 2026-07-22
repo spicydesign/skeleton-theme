@@ -1,0 +1,148 @@
+/*
+ * Demo-stage visualization: listens for standard storefront events on
+ * this same document and animates the code panels — flashing the lines
+ * that just ran, lighting up the request pipeline, and logging events
+ * to the ticker. Also drives the agent console (standard actions) and
+ * the cart reset. Presentation-only; all commerce logic lives in
+ * product-form.js and the Liquid partials.
+ *
+ * Temporary import path until SFR ships the partial runtime.
+ */
+import { partials } from "@shopify/partial-rendering";
+
+const stage = document.querySelector(".demo-stage");
+
+if (stage) {
+  const ticker = stage.querySelector("[data-demo-ticker]");
+  const payloadCount = stage.querySelector("[data-payload-count]");
+  const typed = stage.querySelector("[data-typed]");
+
+  const flash = (ids, amber = false) => {
+    for (const id of ids) {
+      for (const el of stage.querySelectorAll(`[data-l="${id}"]`)) {
+        el.classList.remove("flash", "flash-amber");
+        void el.offsetWidth;
+        el.classList.add(amber ? "flash-amber" : "flash");
+      }
+    }
+  };
+
+  const hotStep = (n, cls = "") => {
+    const el = stage.querySelector(`.demo-step[data-s="${n}"]`);
+    if (!el) return;
+    el.classList.add("hot");
+    if (cls) el.classList.add(cls);
+    setTimeout(() => el.classList.remove("hot", "net", "evt"), 900);
+  };
+
+  const runPipeline = () => {
+    const seq = [
+      [1, "", 0],
+      [2, "", 160],
+      [3, "net", 340],
+      [4, "net", 560],
+      [5, "", 800],
+      [6, "evt", 1000],
+    ];
+    for (const [n, cls, delay] of seq) setTimeout(() => hotStep(n, cls), delay);
+  };
+
+  const log = (badge, cls, text) => {
+    const t = new Date().toTimeString().slice(0, 8);
+    const row = document.createElement("div");
+    row.className = "demo-tick";
+    row.innerHTML = `<span class="demo-tick__t">${t}</span><span class="demo-tick__b demo-tick__b--${cls}">${badge}</span><span>${text}</span>`;
+    ticker.prepend(row);
+    while (ticker.children.length > 5) ticker.lastChild.remove();
+  };
+
+  document.addEventListener("shopify:cart:lines-update", (event) => {
+    log("evt", "evt", `shopify:cart:lines-update · action=${event.action ?? "—"} · context=${event.context ?? "—"}`);
+    flash(["action-call", "handler"], true);
+    runPipeline();
+
+    event.promise?.then((result) => {
+      const count = result?.cart?.totalQuantity;
+      if (count == null) return;
+      if (payloadCount) payloadCount.textContent = count;
+      const tier = count >= 3 ? "tier3" : count === 2 ? "tier2" : "tier1";
+      flash([
+        "refresh", "refresh2", "partial-open", tier, "partial-close", "payload",
+        "ship-open", "ship-calc", "ship-fill",
+        "mini-open", "mini-loop", "mini-total",
+      ]);
+      const total = result?.cart?.cost?.totalAmount?.amount;
+      log("net", "net", `partials re-rendered · cart now ${count} item${count === 1 ? "" : "s"}${total ? ` · $${total}` : ""}`);
+    });
+  });
+
+  document.addEventListener("shopify:cart:error", (event) => {
+    log("err", "evt", `cart error: ${event.error ?? "unknown"}`);
+  });
+
+  const typeCode = (text, cps = 70) =>
+    new Promise((resolve) => {
+      typed.textContent = "";
+      const start = performance.now();
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        typed.textContent = text;
+        resolve();
+      };
+      const frame = (now) => {
+        if (done) return;
+        const chars = Math.min(text.length, Math.floor(((now - start) / 1000) * cps));
+        typed.textContent = text.slice(0, chars);
+        if (chars >= text.length) return finish();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+      setTimeout(finish, (text.length / cps) * 1000 + 1200);
+    });
+
+  stage.querySelector("[data-run-agent]")?.addEventListener("click", async (event) => {
+    const btn = event.currentTarget;
+    const gid = btn.dataset.variantGid;
+    btn.setAttribute("aria-busy", "true");
+    log("ok", "ok", "agent thinking…");
+    await typeCode(`await Shopify.actions.updateCart({\n  lines: [{\n    merchandiseId:\n      "${gid}",\n    quantity: 1,\n  }],\n});`);
+    await new Promise((r) => setTimeout(r, 300));
+
+    try {
+      const { userErrors } = await window.Shopify.actions.updateCart({
+        lines: [{ merchandiseId: gid, quantity: 1 }],
+      });
+      log("ok", "ok", userErrors?.length ? `agent blocked: ${userErrors[0].message}` : "agent action resolved");
+    } catch (error) {
+      log("err", "evt", `agent failed: ${error}`);
+    } finally {
+      btn.removeAttribute("aria-busy");
+    }
+  });
+
+  document.addEventListener("click", async (event) => {
+    const btn = event.target.closest?.("[data-refresh-spotlight]");
+    if (!btn) return;
+    btn.setAttribute("aria-busy", "true");
+    flash(["spot-open", "spot-refresh"]);
+    hotStep(4, "net");
+    setTimeout(() => hotStep(5), 240);
+    try {
+      await partials.refresh("product-spotlight");
+      log("net", "net", "product-spotlight re-rendered · new pick");
+    } finally {
+      btn.removeAttribute("aria-busy");
+    }
+  });
+
+  stage.querySelector("[data-reset-cart]")?.addEventListener("click", async () => {
+    await fetch("/cart/clear.js", { method: "POST" });
+    await partials.refresh("cart-count", "cart-hype", "shipping-bar", "mini-cart");
+    document.querySelector(".cart-hype")?.setAttribute("hidden", "");
+    if (typed) typed.textContent = "";
+    if (payloadCount) payloadCount.textContent = "n";
+    log("ok", "ok", "cart reset — fresh take");
+  });
+}

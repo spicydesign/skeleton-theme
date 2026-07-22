@@ -246,6 +246,22 @@ footer .footer__payment {
   max-inline-size: 12rem;
 }
 
+/* Loading state while an add-to-cart request is in flight.
+   Pico draws the animated spinner via [aria-busy="true"]::before;
+   this adds the interaction polish around it. */
+.add-to-cart {
+  width: auto;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.add-to-cart[aria-busy="true"],
+.cart-hype__suggestion-form button[aria-busy="true"],
+.demo-btn[aria-busy="true"] {
+  pointer-events: none;
+  opacity: 0.75;
+  transform: scale(0.98);
+}
+
 /** Gift card template */
 .template-gift-card main {
   text-align: center;

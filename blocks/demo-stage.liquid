@@ -174,10 +174,20 @@
     min-height: 0;
   }
 
-  /* The demo owns the whole screen: hide the storefront header only on
-     pages where this block renders. */
-  body:has(.demo-stage) > header {
+  /* The demo owns the whole screen: hide the storefront chrome and
+     collapse the layout gaps only on pages where this block renders. */
+  body:has(.demo-stage) > header,
+  body:has(.demo-stage) > footer {
     display: none;
+  }
+
+  body:has(.demo-stage) > main {
+    padding-block: 0;
+    margin-block: 0;
+  }
+
+  body:has(.demo-stage) {
+    overflow: hidden;
   }
 
   @media (max-width: 900px) {
@@ -516,7 +526,7 @@
   .demo-tick__b--ok { background: rgba(149, 191, 71, 0.15); color: var(--ds-liquid); }
 
   .demo-stage__right {
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -547,21 +557,25 @@
   }
 
   .demo-buy {
-    width: min(100%, 26rem);
+    width: min(100%, 20rem);
     min-width: 0;
   }
 
   .demo-buy__image {
-    inline-size: 100%;
+    inline-size: min(100%, 11rem);
+    margin-inline: auto;
   }
 
   .demo-buy__title {
-    margin-block: 1rem 0.25rem;
+    margin-block: 0.6rem 0.15rem;
+    font-size: 1.2rem;
+    line-height: 1.25;
   }
 
   .demo-buy__price {
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 700;
+    margin-block-end: 0.5rem;
   }
 {% endstylesheet %}
 

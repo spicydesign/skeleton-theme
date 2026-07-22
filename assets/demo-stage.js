@@ -107,7 +107,7 @@ if (stage) {
     const gid = btn.dataset.variantGid;
     btn.setAttribute("aria-busy", "true");
     log("ok", "ok", "agent thinking…");
-    await typeCode(`await Shopify.actions.updateCart({\n  lines: [{\n    merchandiseId:\n      "${gid}",\n    quantity: 1,\n  }],\n});`);
+    await typeCode(`await Shopify.actions.updateCart({\n  lines: [{ merchandiseId: "${gid.slice(0, 34)}…", quantity: 1 }],\n});`);
     await new Promise((r) => setTimeout(r, 300));
 
     try {

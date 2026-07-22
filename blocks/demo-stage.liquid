@@ -35,11 +35,6 @@
       <span class="demo-stage__rec"><i></i>LIVE</span>
     </div>
 
-    <p class="demo-stage__lede">
-      The page you are looking at <em>is</em> this code. Add to cart on the
-      right &mdash; one request re-renders <em>four named regions</em>.
-    </p>
-
     <div class="demo-stage__body">
     <div class="demo-stage__scroll">
     <div class="demo-card">
@@ -167,7 +162,7 @@
     --ds-red: #ff5a52;
 
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
     width: 100vw;
     margin-inline: calc(50% - 50vw);
     height: 100dvh;
@@ -214,13 +209,15 @@
   .demo-stage__scroll {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-    padding-inline-end: 0.3rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--ds-line) transparent;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: start;
+    gap: 0.5rem;
+  }
+
+  .demo-stage__scroll > .demo-agent {
+    grid-column: 1 / -1;
   }
 
   .demo-stage__masthead {
@@ -364,7 +361,7 @@
     margin: 0;
     font-size: 0.68rem;
     line-height: 1.5;
-    min-height: 3rem;
+    min-height: 2.2rem;
     white-space: pre-wrap;
     background: transparent;
     padding: 0;

@@ -37,7 +37,9 @@ if (stage) {
     const car = document.querySelector(".shipping-bar__delorean");
     if (!fill || !car) return;
     const pct = parseFloat(fill.style.getPropertyValue("--fill")) || 0;
-    car.style.setProperty("--delorean-x", `${pct}%`);
+    const unlocked = pct >= 100;
+    car.classList.toggle("shipping-bar__delorean--warp", unlocked);
+    car.style.setProperty("--delorean-x", unlocked ? "220%" : `${pct}%`);
     car.classList.toggle("shipping-bar__delorean--visible", pct > 0);
   }
 

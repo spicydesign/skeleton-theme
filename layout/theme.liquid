@@ -37,6 +37,9 @@
 
     {% block 'footer' -%}{%- endblock %}
 
+    {% # Cart interactions via standard actions + partial refresh, on every page. %}
+    <script src="{{ 'product-form.js' | asset_url }}" type="module"></script>
+
     {% # Demo-store only: bridges standard events to the split-screen demo stage when framed. %}
     <script src="{{ 'demo-bridge.js' | asset_url }}" type="module"></script>
   </body>

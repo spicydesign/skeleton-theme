@@ -203,6 +203,45 @@ footer .footer__payment {
   height: auto;
 }
 
+/** Product page */
+.product {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .product {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .product-details {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+.product-images {
+  display: grid;
+  gap: 1rem;
+}
+
+.product-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.product-form form {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
+.product-form select,
+.product-form input[type="number"] {
+  max-inline-size: 12rem;
+}
+
 /** Gift card template */
 .template-gift-card main {
   text-align: center;

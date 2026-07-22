@@ -14,8 +14,18 @@
  */
 import { partials } from "@shopify/partial-rendering";
 
+const CART_REGIONS = ["cart-count", "cart-hype", "shipping-bar", "mini-cart"];
+
 async function refreshCartUI() {
-  await partials.refresh("cart-count", "cart-hype");
+  const present = CART_REGIONS.filter((name) => {
+    try {
+      return Boolean(partials.get(name));
+    } catch {
+      return true;
+    }
+  });
+
+  if (present.length) await partials.refresh(...present);
   document.querySelector(".cart-hype")?.removeAttribute("hidden");
 }
 

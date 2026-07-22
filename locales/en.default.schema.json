@@ -42,7 +42,11 @@
     "theme": "Theme",
     "typography": "Typography",
     "featured_collection": "Featured collection",
-    "cart_hype": "Cart hype"
+    "cart_hype": "Cart hype",
+    "demo_stage": "Demo stage",
+    "free_shipping_bar": "Free shipping bar",
+    "mini_cart": "Mini cart",
+    "product_spotlight": "Product spotlight"
   },
   "labels": {
     "alignment": "Alignment",
@@ -61,7 +65,9 @@
     "heading": "Heading",
     "collection": "Collection",
     "products_to_show": "Products to show",
-    "discount_code": "Discount code"
+    "discount_code": "Discount code",
+    "product": "Product",
+    "threshold": "Free shipping threshold"
   },
   "options": {
     "alignment": {

@@ -1,0 +1,92 @@
+{% doc %}
+  Renders a compact live cart summary. The line list and total live in
+  a partial region that re-renders on every cart update — the article's
+  canonical "cart-items" example.
+
+  @example
+  {% block 'mini-cart' %}{% endblock %}
+{% enddoc %}
+
+<div class="mini-cart" {{ block.shopify_attributes }}>
+  <h3 class="mini-cart__title">{{ 'mini_cart.title' | t }}</h3>
+
+  {% partial 'mini-cart' %}
+    {% if cart.item_count == 0 %}
+      <p class="mini-cart__empty">{{ 'mini_cart.empty' | t }}</p>
+    {% else %}
+      <ul class="mini-cart__lines">
+        {% for item in cart.items %}
+          <li class="mini-cart__line">
+            <span class="mini-cart__qty">{{ item.quantity }}&times;</span>
+            <span class="mini-cart__name">{{ item.product.title | escape }}</span>
+            <span class="mini-cart__price">{{ item.final_line_price | money }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="mini-cart__total">
+        <span>{{ 'mini_cart.total' | t }}</span>
+        <strong>{{ cart.total_price | money }}</strong>
+      </p>
+    {% endif %}
+  {% endpartial %}
+</div>
+
+{% stylesheet %}
+  .mini-cart__title {
+    margin-block-end: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .mini-cart__empty {
+    color: #7d8b78;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .mini-cart__lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mini-cart__line {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    font-size: 0.85rem;
+    padding-block: 0.25rem;
+    border-block-end: 1px dashed #e0e6d8;
+  }
+
+  .mini-cart__qty {
+    color: #5e8e3e;
+    font-weight: 700;
+    flex: none;
+  }
+
+  .mini-cart__name {
+    flex: 1;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mini-cart__price {
+    flex: none;
+  }
+
+  .mini-cart__total {
+    display: flex;
+    justify-content: space-between;
+    margin-block: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.mini_cart",
+  "settings": []
+}
+{% endschema %}

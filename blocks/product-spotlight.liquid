@@ -1,0 +1,106 @@
+{% doc %}
+  Renders a rotating product spotlight. The card lives in a partial
+  region; the "show another" control asks the server to re-render just
+  this region, which picks a different product — refresh-on-demand,
+  like the skeleton's liquid-tips example but with commerce data.
+
+  @example
+  {% block 'product-spotlight' %}{% endblock %}
+{% enddoc %}
+
+{%- liquid
+  assign pool = blank
+  for candidate_collection in collections
+    if candidate_collection.products.size > 1
+      assign pool = candidate_collection
+      break
+    endif
+  endfor
+-%}
+
+<div class="spotlight" {{ block.shopify_attributes }}>
+  <div class="spotlight__head">
+    <h3 class="spotlight__title">{{ 'spotlight.title' | t }}</h3>
+    <button type="button" class="spotlight__refresh" data-refresh-spotlight>
+      {{ 'spotlight.another' | t }}
+    </button>
+  </div>
+
+  {% partial 'product-spotlight' %}
+    {%- liquid
+      assign seed = 'now' | date: '%N' | default: 0
+      assign count = pool.products.size | at_least: 1
+      assign idx = seed | modulo: count
+    -%}
+
+    {% if pool != blank %}
+      {% for spotlight_product in pool.products limit: 1 offset: idx %}
+        <a class="spotlight__card" href="{{ spotlight_product.url }}">
+          {% if spotlight_product.featured_image %}
+            {% render 'image',
+              class: 'spotlight__image',
+              image: spotlight_product.featured_image,
+              width: 200,
+              height: 200,
+              crop: 'center'
+            %}
+          {% endif %}
+          <span class="spotlight__info">
+            <strong>{{ spotlight_product.title | escape }}</strong><br>
+            {{ spotlight_product.price | money }}
+          </span>
+        </a>
+      {% endfor %}
+    {% endif %}
+  {% endpartial %}
+</div>
+
+{% stylesheet %}
+  .spotlight__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block-end: 0.5rem;
+  }
+
+  .spotlight__title {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .spotlight__refresh {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    margin: 0;
+    width: auto;
+    border-radius: 0.4rem;
+  }
+
+  .spotlight__card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    text-decoration: none;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid #e0e6d8;
+    border-radius: 0.5rem;
+  }
+
+  .spotlight__image {
+    inline-size: 4.5rem;
+    flex: none;
+  }
+
+  .spotlight__info {
+    font-size: 0.85rem;
+    min-inline-size: 0;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.product_spotlight",
+  "settings": []
+}
+{% endschema %}

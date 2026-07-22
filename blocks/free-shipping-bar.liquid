@@ -1,0 +1,78 @@
+{% doc %}
+  Renders a free-shipping progress bar. The fill and label live in a
+  partial region, so each cart update re-renders the server-computed
+  progress toward the threshold without a page reload.
+
+  @example
+  {% block 'free-shipping-bar' %}{% endblock %}
+{% enddoc %}
+
+{%- liquid
+  assign threshold = block.settings.threshold | default: 1500
+  assign threshold_cents = threshold | times: 100
+-%}
+
+<div class="shipping-bar" {{ block.shopify_attributes }}>
+  {% partial 'shipping-bar' %}
+    {%- liquid
+      assign pct = cart.total_price | times: 100 | divided_by: threshold_cents | at_most: 100 | at_least: 0
+      assign remaining = threshold_cents | minus: cart.total_price
+      assign remaining_money = remaining | money
+    -%}
+
+    <div class="shipping-bar__track">
+      <div class="shipping-bar__fill" style="--fill: {{ pct }}%"></div>
+    </div>
+
+    {% if cart.total_price >= threshold_cents %}
+      <p class="shipping-bar__label shipping-bar__label--won">
+        {{ 'shipping_bar.unlocked' | t }}
+      </p>
+    {% else %}
+      <p class="shipping-bar__label">
+        {{ 'shipping_bar.remaining' | t: amount: remaining_money }}
+      </p>
+    {% endif %}
+  {% endpartial %}
+</div>
+
+{% stylesheet %}
+  .shipping-bar__track {
+    block-size: 0.6rem;
+    border-radius: 999px;
+    background: #e6e9e2;
+    overflow: hidden;
+  }
+
+  .shipping-bar__fill {
+    block-size: 100%;
+    inline-size: var(--fill, 0%);
+    border-radius: inherit;
+    background: linear-gradient(90deg, #95bf47, #5e8e3e);
+    transition: inline-size 0.5s cubic-bezier(0.2, 0.9, 0.25, 1);
+  }
+
+  .shipping-bar__label {
+    margin-block: 0.4rem 0;
+    font-size: 0.85rem;
+  }
+
+  .shipping-bar__label--won {
+    color: #5e8e3e;
+    font-weight: 700;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.free_shipping_bar",
+  "settings": [
+    {
+      "type": "number",
+      "id": "threshold",
+      "label": "t:labels.threshold",
+      "default": 1500
+    }
+  ]
+}
+{% endschema %}

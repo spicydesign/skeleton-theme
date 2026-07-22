@@ -1,0 +1,506 @@
+{% doc %}
+  Renders the homepage as a split-screen demo stage: the live
+  storefront experience on the right (product buy box + cart-hype
+  block), and the code that powers it on the left. The left panel
+  animates in response to standard storefront events fired by the
+  right panel — same document, no iframe.
+
+  @example
+  {% block 'demo-stage' %}{% endblock %}
+{% enddoc %}
+
+{%- liquid
+  assign demo_product = block.settings.product
+  if demo_product == blank
+    for candidate_collection in collections
+      for candidate in candidate_collection.products
+        if candidate.available
+          assign demo_product = candidate
+          break
+        endif
+      endfor
+      if demo_product != blank
+        break
+      endif
+    endfor
+  endif
+
+  assign demo_variant = demo_product.selected_or_first_available_variant
+-%}
+
+<div class="demo-stage" {{ block.shopify_attributes }}>
+  <div class="demo-stage__left">
+    <div class="demo-stage__masthead">
+      <span class="demo-stage__title">Liquid &#8646; <em>Back to the Future</em></span>
+      <span class="demo-stage__rec"><i></i>LIVE</span>
+    </div>
+
+    <p class="demo-stage__lede">
+      The page you are looking at <em>is</em> this code. Add to cart on the
+      right &mdash; one request re-renders <em>four named regions</em>.
+    </p>
+
+    <div class="demo-card">
+      <div class="demo-card__bar"><span>blocks/cart-hype.liquid</span><span>server-rendered</span></div>
+      <pre class="demo-card__pre"><span class="demo-ln" data-l="partial-open"><span class="tk-t">&#123;% partial <span class="tk-s">'cart-hype'</span> %}</span></span><span class="demo-ln" data-l="tier1">  <span class="tk-t">&#123;% if cart.item_count == 1 %}</span> <span class="tk-c">&rarr; "Nice pick!"</span></span><span class="demo-ln" data-l="tier2">  <span class="tk-t">&#123;% elsif cart.item_count == 2 %}</span> <span class="tk-c">&rarr; suggest a combo</span></span><span class="demo-ln" data-l="tier3">  <span class="tk-t">&#123;% elsif cart.item_count &gt;= 3 %}</span> <span class="tk-c">&rarr; 20% off code</span></span><span class="demo-ln" data-l="partial-close"><span class="tk-t">&#123;% endpartial %}</span></span></pre>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-card__bar"><span>blocks/free-shipping-bar.liquid</span><span>server math</span></div>
+      <pre class="demo-card__pre"><span class="demo-ln" data-l="ship-open"><span class="tk-t">&#123;% partial <span class="tk-s">'shipping-bar'</span> %}</span></span><span class="demo-ln" data-l="ship-calc">  <span class="tk-t">&#123;&#123; cart.total_price | divided_by: threshold }}</span> <span class="tk-c">&rarr; fill %</span></span><span class="demo-ln" data-l="ship-fill">  <span class="tk-c">&rarr; "Add $X more for free shipping"</span></span><span class="demo-ln"><span class="tk-t">&#123;% endpartial %}</span></span></pre>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-card__bar"><span>blocks/mini-cart.liquid</span><span>live line items</span></div>
+      <pre class="demo-card__pre"><span class="demo-ln" data-l="mini-open"><span class="tk-t">&#123;% partial <span class="tk-s">'mini-cart'</span> %}</span></span><span class="demo-ln" data-l="mini-loop">  <span class="tk-t">&#123;% for item in cart.items %}</span> <span class="tk-c">&rarr; qty &times; title &times; price</span></span><span class="demo-ln" data-l="mini-total">  <span class="tk-t">&#123;&#123; cart.total_price | money }}</span></span><span class="demo-ln"><span class="tk-t">&#123;% endpartial %}</span></span></pre>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-card__bar"><span>blocks/product-spotlight.liquid</span><span>refresh on demand</span></div>
+      <pre class="demo-card__pre"><span class="demo-ln" data-l="spot-open"><span class="tk-t">&#123;% partial <span class="tk-s">'product-spotlight'</span> %}</span> <span class="tk-c">&rarr; seeded pick</span></span><span class="demo-ln" data-l="spot-refresh"><span class="tk-k">await</span> partials.<span class="tk-k">refresh</span>(<span class="tk-s">"product-spotlight"</span>) <span class="tk-c">// on click</span></span></pre>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-card__bar"><span>assets/product-form.js</span><span>the courier</span></div>
+      <pre class="demo-card__pre"><span class="demo-ln" data-l="action-call"><span class="tk-k">await</span> Shopify.actions.<span class="tk-k">updateCart</span>({ lines })</span><span class="demo-ln" data-l="handler"><span class="tk-c">// theme handler: default mutation, then&hellip;</span></span><span class="demo-ln" data-l="refresh"><span class="tk-k">await</span> partials.<span class="tk-k">refresh</span>(<span class="tk-s">"cart-count"</span>, <span class="tk-s">"cart-hype"</span>,</span><span class="demo-ln" data-l="refresh2">  <span class="tk-s">"shipping-bar"</span>, <span class="tk-s">"mini-cart"</span>) <span class="tk-c">// one request</span></span></pre>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-card__bar"><span>the network payload</span><span>one GET &middot; 4 regions</span></div>
+      <pre class="demo-card__pre"><span class="demo-ln" data-l="payload">&lt;template for=<span class="tk-s">"cart-count"</span>&gt;&lt;sup&gt;<span class="tk-k" data-payload-count>n</span>&lt;/sup&gt;&lt;/template&gt;</span></pre>
+    </div>
+
+    <div class="demo-agent">
+      <div class="demo-agent__who">&#11042; AGENT CONSOLE &mdash; standard actions, announced yesterday</div>
+      <pre class="demo-agent__typed" data-typed></pre>
+      <div class="demo-agent__row">
+        <button
+          type="button"
+          class="demo-btn"
+          data-run-agent
+          data-variant-gid="gid://shopify/ProductVariant/{{ demo_variant.id }}"
+        >&#9654; RUN AGENT</button>
+        <button type="button" class="demo-btn demo-btn--ghost" data-reset-cart>RESET CART</button>
+      </div>
+    </div>
+
+    <div class="demo-pipeline">
+      <span class="demo-step" data-s="1">submit / agent</span><span class="demo-pipe">&#9472;&#9654;</span><span class="demo-step" data-s="2">updateCart()</span><span class="demo-pipe">&#9472;&#9654;</span><span class="demo-step" data-s="3">Storefront API</span><span class="demo-pipe">&#9472;&#9654;</span><span class="demo-step" data-s="4">?partials=&hellip;</span><span class="demo-pipe">&#9472;&#9654;</span><span class="demo-step" data-s="5">apply()</span><span class="demo-pipe">&#9472;&#9654;</span><span class="demo-step" data-s="6">event</span>
+    </div>
+
+    <div class="demo-ticker">
+      <div class="demo-ticker__cap">STANDARD EVENTS &middot; LIVE</div>
+      <div data-demo-ticker></div>
+    </div>
+  </div>
+
+  <div class="demo-stage__right">
+    {% if demo_product != blank %}
+      <div class="demo-stage__widgets">
+      <article class="demo-buy">
+        {% if demo_product.featured_image %}
+          {% render 'image',
+            class: 'demo-buy__image',
+            image: demo_product.featured_image,
+            width: 700,
+            height: 700,
+            crop: 'center'
+          %}
+        {% endif %}
+
+        <h2 class="demo-buy__title">{{ demo_product.title | escape }}</h2>
+        <p class="demo-buy__price">{{ demo_product.price | money }}</p>
+
+        <div class="product-form">
+          {% form 'product', demo_product %}
+            {% if demo_product.has_only_default_variant %}
+              <input type="hidden" name="id" value="{{ demo_variant.id }}">
+            {% else %}
+              <select name="id">
+                {% for variant in demo_product.variants %}
+                  <option
+                    value="{{ variant.id }}"
+                    {% if variant == demo_variant %}
+                      selected="selected"
+                    {% endif %}
+                  >
+                    {{ variant.title }} - {{ variant.price | money }}
+                  </option>
+                {% endfor %}
+              </select>
+            {% endif %}
+
+            <input type="submit" value="Add to cart">
+          {% endform %}
+        </div>
+
+        {% block 'cart-hype', current_product: demo_product %}{% endblock %}
+      </article>
+
+      <div class="demo-side">
+        {% block 'free-shipping-bar' %}{% endblock %}
+        {% block 'mini-cart' %}{% endblock %}
+        {% block 'product-spotlight' %}{% endblock %}
+      </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{{ 'demo-stage.js' | asset_url }}" type="module"></script>
+
+{% stylesheet %}
+  .demo-stage {
+    --ds-bg: #0a0d0b;
+    --ds-card: #0d120c;
+    --ds-line: #223020;
+    --ds-ink: #e6efe2;
+    --ds-dim: #7d8b78;
+    --ds-liquid: #95bf47;
+    --ds-amber: #f5b759;
+    --ds-cyan: #6fd3e0;
+    --ds-red: #ff5a52;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    min-height: calc(100dvh - 5rem);
+  }
+
+  @media (max-width: 900px) {
+    .demo-stage {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .demo-stage__left {
+    background: var(--ds-bg);
+    color: var(--ds-ink);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.8rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px);
+  }
+
+  .demo-stage__masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .demo-stage__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .demo-stage__title em {
+    color: var(--ds-liquid);
+  }
+
+  .demo-stage__rec {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--ds-dim);
+  }
+
+  .demo-stage__rec i {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--ds-red);
+    animation: demo-blink 1.6s steps(2, jump-none) infinite;
+  }
+
+  @keyframes demo-blink {
+    50% { opacity: 0.25; }
+  }
+
+  .demo-stage__lede {
+    color: var(--ds-dim);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .demo-stage__lede em {
+    color: var(--ds-liquid);
+    font-style: normal;
+  }
+
+  .demo-card {
+    background: var(--ds-card);
+    border: 1px solid var(--ds-line);
+    border-radius: 0.6rem;
+    overflow: hidden;
+  }
+
+  .demo-card__bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    color: var(--ds-dim);
+    border-bottom: 1px solid var(--ds-line);
+    background: rgba(149, 191, 71, 0.05);
+  }
+
+  .demo-card__pre {
+    margin: 0;
+    padding: 0.55rem 0;
+    overflow-x: auto;
+    line-height: 1.6;
+    font-size: 0.74rem;
+    background: transparent;
+  }
+
+  .demo-ln {
+    display: block;
+    padding-inline: 0.85rem;
+    white-space: pre;
+    border-inline-start: 2px solid transparent;
+  }
+
+  .demo-ln.flash {
+    animation: demo-lineflash 1.1s ease-out both;
+  }
+
+  .demo-ln.flash-amber {
+    animation: demo-lineflash-a 1.1s ease-out both;
+  }
+
+  @keyframes demo-lineflash {
+    0% {
+      background: rgba(149, 191, 71, 0.3);
+      border-inline-start-color: var(--ds-liquid);
+    }
+    100% {
+      background: transparent;
+      border-inline-start-color: transparent;
+    }
+  }
+
+  @keyframes demo-lineflash-a {
+    0% {
+      background: rgba(245, 183, 89, 0.26);
+      border-inline-start-color: var(--ds-amber);
+    }
+    100% {
+      background: transparent;
+      border-inline-start-color: transparent;
+    }
+  }
+
+  .tk-t { color: var(--ds-liquid); }
+  .tk-s { color: var(--ds-amber); }
+  .tk-k { color: var(--ds-cyan); }
+  .tk-c { color: var(--ds-dim); font-style: italic; }
+
+  .demo-agent {
+    background: #070a08;
+    border: 1px solid var(--ds-line);
+    border-radius: 0.6rem;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .demo-agent__who {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    color: var(--ds-cyan);
+    margin-block-end: 0.5rem;
+  }
+
+  .demo-agent__typed {
+    margin: 0;
+    font-size: 0.74rem;
+    line-height: 1.6;
+    min-height: 4.2rem;
+    white-space: pre-wrap;
+    background: transparent;
+    padding: 0;
+  }
+
+  .demo-agent__row {
+    display: flex;
+    gap: 0.6rem;
+    margin-block-start: 0.7rem;
+  }
+
+  .demo-btn {
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 1rem;
+    border-radius: 0.45rem;
+    border: 1px solid #5e8e3e;
+    background: linear-gradient(180deg, var(--ds-liquid), #5e8e3e);
+    color: #0a0d0b;
+    cursor: pointer;
+    margin: 0;
+    width: auto;
+  }
+
+  .demo-btn--ghost {
+    background: transparent;
+    color: var(--ds-dim);
+    border-color: var(--ds-line);
+    font-weight: 400;
+  }
+
+  .demo-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-block: 0.4rem;
+  }
+
+  .demo-step {
+    font-size: 0.62rem;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--ds-line);
+    border-radius: 0.4rem;
+    color: var(--ds-dim);
+    flex: none;
+    transition: all 0.2s ease;
+  }
+
+  .demo-step.hot {
+    color: #0a0d0b;
+    background: var(--ds-liquid);
+    border-color: var(--ds-liquid);
+    box-shadow: 0 0 16px rgba(149, 191, 71, 0.45);
+  }
+
+  .demo-step.hot.net {
+    background: var(--ds-cyan);
+    border-color: var(--ds-cyan);
+    box-shadow: 0 0 16px rgba(111, 211, 224, 0.45);
+  }
+
+  .demo-step.hot.evt {
+    background: var(--ds-amber);
+    border-color: var(--ds-amber);
+    box-shadow: 0 0 16px rgba(245, 183, 89, 0.45);
+  }
+
+  .demo-pipe {
+    color: var(--ds-line);
+    flex: none;
+    font-size: 0.65rem;
+  }
+
+  .demo-ticker {
+    border-top: 1px solid var(--ds-line);
+    padding-block-start: 0.5rem;
+    min-height: 7rem;
+  }
+
+  .demo-ticker__cap {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--ds-dim);
+    margin-block-end: 0.35rem;
+  }
+
+  .demo-tick {
+    font-size: 0.7rem;
+    line-height: 1.7;
+    display: flex;
+    gap: 0.6rem;
+    animation: demo-rise 0.3s ease both;
+  }
+
+  @keyframes demo-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .demo-tick__t {
+    color: var(--ds-dim);
+    flex: none;
+  }
+
+  .demo-tick__b {
+    flex: none;
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 0.3rem;
+    align-self: center;
+  }
+
+  .demo-tick__b--evt { background: rgba(245, 183, 89, 0.15); color: var(--ds-amber); }
+  .demo-tick__b--net { background: rgba(111, 211, 224, 0.15); color: var(--ds-cyan); }
+  .demo-tick__b--ok { background: rgba(149, 191, 71, 0.15); color: var(--ds-liquid); }
+
+  .demo-stage__right {
+    padding: 2rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .demo-stage__widgets {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 52rem;
+  }
+
+  @media (min-width: 1280px) {
+    .demo-stage__widgets {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .demo-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    min-width: 0;
+  }
+
+  .demo-buy {
+    width: min(100%, 26rem);
+    min-width: 0;
+  }
+
+  .demo-buy__image {
+    inline-size: 100%;
+  }
+
+  .demo-buy__title {
+    margin-block: 1rem 0.25rem;
+  }
+
+  .demo-buy__price {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.demo_stage",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:labels.product"
+    }
+  ]
+}
+{% endschema %}

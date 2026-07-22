@@ -20,6 +20,12 @@
             <span class="mini-cart__qty">{{ item.quantity }}&times;</span>
             <span class="mini-cart__name">{{ item.product.title | escape }}</span>
             <span class="mini-cart__price">{{ item.final_line_price | money }}</span>
+            <button
+              type="button"
+              class="mini-cart__remove"
+              data-remove-line="{{ item.key }}"
+              aria-label="{{ 'mini_cart.remove' | t }}"
+            >&times;</button>
           </li>
         {% endfor %}
       </ul>
@@ -74,6 +80,29 @@
 
   .mini-cart__price {
     flex: none;
+  }
+
+  .mini-cart__remove {
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    font-size: 0.9rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #a33;
+    border: 1px solid #e0c8c8;
+  }
+
+  .mini-cart__remove:hover {
+    background: #a33;
+    color: #fff;
+    border-color: #a33;
   }
 
   .mini-cart__total {

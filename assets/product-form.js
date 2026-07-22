@@ -109,6 +109,26 @@ async function addToCart(form) {
   }
 }
 
+document.addEventListener("click", async (event) => {
+  const btn = event.target.closest?.("[data-remove-line]");
+  if (!btn) return;
+
+  btn.setAttribute("aria-busy", "true");
+  try {
+    const response = await fetch("/cart/change.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ id: btn.dataset.removeLine, quantity: 0 }),
+    });
+    if (!response.ok) throw new Error(`Remove line failed: HTTP ${response.status}`);
+    await refreshCartUI();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    btn.removeAttribute("aria-busy");
+  }
+});
+
 document.addEventListener("submit", (event) => {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;

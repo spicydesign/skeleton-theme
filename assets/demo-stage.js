@@ -122,6 +122,14 @@ if (stage) {
     }
   });
 
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.("[data-remove-line]")) return;
+    log("net", "net", "removing line · POST /cart/change.js → partials refresh");
+    flash(["mini-open", "mini-loop", "mini-total"]);
+    hotStep(4, "net");
+    setTimeout(() => hotStep(5), 240);
+  });
+
   document.addEventListener("click", async (event) => {
     const btn = event.target.closest?.("[data-refresh-spotlight]");
     if (!btn) return;

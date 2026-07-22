@@ -95,7 +95,8 @@
   "mini_cart": {
     "title": "Your cart, live",
     "empty": "Cart is empty — add something!",
-    "total": "Total"
+    "total": "Total",
+    "remove": "Remove item"
   },
   "spotlight": {
     "title": "Product spotlight",

@@ -1,3 +1,25 @@
+/** Black-on-white theme: monochrome primary palette on top of Pico */
+:root,
+:root[data-theme="light"] {
+  --pico-primary: #111;
+  --pico-primary-background: #111;
+  --pico-primary-border: #111;
+  --pico-primary-hover: #000;
+  --pico-primary-hover-background: #333;
+  --pico-primary-hover-border: #333;
+  --pico-primary-focus: rgba(0, 0, 0, 0.25);
+  --pico-primary-inverse: #fff;
+  --pico-primary-underline: rgba(0, 0, 0, 0.4);
+}
+
+body {
+  font-family: "Instrument Sans", var(--font-primary--family), system-ui, sans-serif;
+}
+
+a {
+  color: #111;
+}
+
 /** Hello world block */
 .welcome {
   display: grid;

@@ -1,16 +1,18 @@
 /*
- * Adds a product to the cart without a page reload, then refreshes the
- * cart-count partial so the header badge reflects the new quantity.
+ * Adds products to the cart without a page reload, then refreshes the
+ * cart-count and cart-hype partials so the header badge and the
+ * encouragement message reflect the new cart state.
+ *
+ * Uses submit delegation so it also catches forms that live inside
+ * partial regions (like the cart-hype suggestion card), which are
+ * replaced wholesale on every refresh.
+ *
  * Temporary import path until SFR ships the partial runtime.
  */
 import { partials } from "@shopify/partial-rendering";
 
-const form = document.querySelector('form[action*="/cart/add"]');
-const button = form?.querySelector('input[type="submit"]');
-
-async function addToCart(event) {
-  event.preventDefault();
-
+async function addToCart(form) {
+  const button = form.querySelector('[type="submit"]');
   button?.setAttribute("aria-busy", "true");
 
   try {
@@ -34,4 +36,11 @@ async function addToCart(event) {
   }
 }
 
-form?.addEventListener("submit", addToCart);
+document.addEventListener("submit", (event) => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (!form.action.includes("/cart/add")) return;
+
+  event.preventDefault();
+  addToCart(form);
+});

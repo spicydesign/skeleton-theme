@@ -1,12 +1,13 @@
 {% doc %}
-  Renders an escalating encouragement message below the product form.
-  The message lives in a partial region so it can be refreshed after
-  each add-to-cart without a page reload: one item earns a hello, two
-  items a nudge with a suggested product from the store, and three or
-  more reveal a discount code.
+  Renders an escalating encouragement message below the product form,
+  revealed only after an add-to-cart happens on this page. One item
+  earns a hello; two items suggest a companion product that can be
+  added straight from the card; when both the current product and the
+  suggestion are in the cart, the message celebrates the combo; three
+  or more items reveal a discount code.
 
   @param {object} [current_product] - The product being viewed, so the
-    suggestion at two items can pick a different product.
+    suggestion can pick a different product and combos can be detected.
 
   @example
   {% block 'cart-hype', current_product: product %}{% endblock %}
@@ -15,42 +16,68 @@
 {% # Hidden until an add-to-cart happens on this page: reactions to the shopper's action, not ambient cart state. %}
 <div class="cart-hype" {{ block.shopify_attributes }} aria-live="polite" hidden>
   {% partial 'cart-hype' %}
-    {% if cart.item_count == 1 %}
+    {%- liquid
+      assign suggestion = blank
+      for candidate_collection in collections
+        for candidate in candidate_collection.products
+          unless candidate.id == current_product.id
+            assign suggestion = candidate
+            break
+          endunless
+        endfor
+        if suggestion != blank
+          break
+        endif
+      endfor
+
+      assign current_in_cart = false
+      assign suggestion_in_cart = false
+      for item in cart.items
+        if item.product_id == current_product.id
+          assign current_in_cart = true
+        endif
+        if suggestion != blank and item.product_id == suggestion.id
+          assign suggestion_in_cart = true
+        endif
+      endfor
+    -%}
+
+    {% if current_in_cart and suggestion_in_cart %}
+      {% if cart.item_count >= 3 %}
+        <p class="cart-hype__message cart-hype__message--discount">
+          {{ 'cart_hype.combo_discount' | t: count: cart.item_count, code: block.settings.discount_code }}
+        </p>
+      {% else %}
+        <p class="cart-hype__message">{{ 'cart_hype.combo' | t }}</p>
+      {% endif %}
+    {% elsif cart.item_count == 1 %}
       <p class="cart-hype__message">{{ 'cart_hype.one' | t }}</p>
     {% elsif cart.item_count == 2 %}
       <p class="cart-hype__message">{{ 'cart_hype.two' | t }}</p>
 
-      {%- liquid
-        assign suggestion = blank
-        for candidate_collection in collections
-          for candidate in candidate_collection.products
-            unless candidate.id == current_product.id
-              assign suggestion = candidate
-              break
-            endunless
-          endfor
-          if suggestion != blank
-            break
-          endif
-        endfor
-      -%}
-
       {% if suggestion != blank %}
-        <a class="cart-hype__suggestion" href="{{ suggestion.url }}">
-          {% if suggestion.featured_image %}
-            {% render 'image',
-              class: 'cart-hype__suggestion-image',
-              image: suggestion.featured_image,
-              width: 160,
-              height: 160,
-              crop: 'center'
-            %}
-          {% endif %}
-          <span>
-            <strong>{{ suggestion.title | escape }}</strong><br>
-            {{ suggestion.price | money }}
-          </span>
-        </a>
+        <div class="cart-hype__suggestion">
+          <a class="cart-hype__suggestion-link" href="{{ suggestion.url }}">
+            {% if suggestion.featured_image %}
+              {% render 'image',
+                class: 'cart-hype__suggestion-image',
+                image: suggestion.featured_image,
+                width: 160,
+                height: 160,
+                crop: 'center'
+              %}
+            {% endif %}
+            <span>
+              <strong>{{ suggestion.title | escape }}</strong><br>
+              {{ suggestion.price | money }}
+            </span>
+          </a>
+
+          <form action="{{ routes.cart_add_url }}" method="post" class="cart-hype__suggestion-form">
+            <input type="hidden" name="id" value="{{ suggestion.selected_or_first_available_variant.id }}">
+            <button type="submit">{{ 'cart_hype.add_suggestion' | t }}</button>
+          </form>
+        </div>
       {% endif %}
     {% elsif cart.item_count >= 3 %}
       <p class="cart-hype__message cart-hype__message--discount">
@@ -89,17 +116,37 @@
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    justify-content: space-between;
     margin-block-start: 0.5rem;
     padding: 0.5rem 0.75rem;
     border: 1px solid #e0e6f5;
     border-radius: 0.5rem;
-    text-decoration: none;
     animation: cart-hype-pop 0.45s ease-out;
+  }
+
+  .cart-hype__suggestion-link {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
   }
 
   .cart-hype__suggestion-image {
     inline-size: 4rem;
     flex: none;
+  }
+
+  .cart-hype__suggestion-form {
+    margin: 0;
+    flex: none;
+  }
+
+  .cart-hype__suggestion-form button {
+    margin: 0;
+    padding: 0.4rem 0.8rem;
+    width: auto;
   }
 
   @media (prefers-reduced-motion: reduce) {

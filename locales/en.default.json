@@ -81,8 +81,11 @@
     "view_all": "View all"
   },
   "cart_hype": {
-    "one": "You added one item to the cart!",
-    "two": "Amazing! You added two — how about this product?",
-    "many": "{{ count }} items! Oh, you can't get enough — we're giving you 20% off with code {{ code }}"
+    "one": "Nice pick — that's one in the cart!",
+    "two": "Two already! This one would round things out nicely:",
+    "add_suggestion": "Add it too",
+    "combo": "Now that's a combo — these two were made for each other.",
+    "combo_discount": "Now that's a combo! And with {{ count }} items in your cart, take 20% off with code {{ code }}.",
+    "many": "{{ count }} items?! You really can't get enough — enjoy 20% off with code {{ code }}."
   }
 }

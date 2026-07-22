@@ -26,7 +26,22 @@ if (stage) {
   document.addEventListener("demo:refresh-timing", (event) => {
     lastRefreshMs = event.detail?.ms ?? null;
     if (lastRefreshMs != null) showMs(lastRefreshMs);
+    updateDelorean();
   });
+
+  /* Parks the DeLorean at the shipping bar's fill edge. The car sits
+     outside the partial region, so it persists across swaps and CSS
+     transitions carry it (and fade it in) between server states. */
+  function updateDelorean() {
+    const fill = document.querySelector(".shipping-bar__fill");
+    const car = document.querySelector(".shipping-bar__delorean");
+    if (!fill || !car) return;
+    const pct = parseFloat(fill.style.getPropertyValue("--fill")) || 0;
+    car.style.setProperty("--delorean-x", `${pct}%`);
+    car.classList.toggle("shipping-bar__delorean--visible", pct > 0);
+  }
+
+  updateDelorean();
 
   const flash = (ids, amber = false) => {
     for (const id of ids) {
@@ -172,6 +187,7 @@ if (stage) {
   stage.querySelector("[data-reset-cart]")?.addEventListener("click", async () => {
     await fetch("/cart/clear.js", { method: "POST" });
     await partials.refresh("cart-count", "cart-hype", "shipping-bar", "mini-cart");
+    updateDelorean();
     document.querySelector(".cart-hype")?.setAttribute("hidden", "");
     if (typed) typed.textContent = "";
     if (payloadCount) payloadCount.textContent = "n";

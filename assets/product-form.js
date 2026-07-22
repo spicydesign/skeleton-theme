@@ -1,33 +1,82 @@
 /*
- * Adds products to the cart without a page reload, then refreshes the
- * cart-count and cart-hype partials so the header badge and the
- * encouragement message reflect the new cart state.
+ * Cart interactions via Standard Actions + partial rendering.
  *
- * Uses submit delegation so it also catches forms that live inside
- * partial regions (like the cart-hype suggestion card), which are
- * replaced wholesale on every refresh.
+ * The theme configures Shopify.actions.updateCart so that ANY caller —
+ * our own product forms, an app, or an agent — runs the same flow: the
+ * default Storefront API mutation, then a refresh of the cart-count and
+ * cart-hype partials. Standard events (shopify:cart:lines-update, etc.)
+ * auto-emit when the configured action succeeds.
+ *
+ * Form submits are delegated at the document level so forms living
+ * inside partial regions (replaced wholesale on refresh) stay wired.
  *
  * Temporary import path until SFR ships the partial runtime.
  */
 import { partials } from "@shopify/partial-rendering";
+
+async function refreshCartUI() {
+  await partials.refresh("cart-count", "cart-hype");
+  document.querySelector(".cart-hype")?.removeAttribute("hidden");
+}
+
+function configureCartAction() {
+  if (!window.Shopify?.actions?.updateCart?.configure) return false;
+
+  window.Shopify.actions.updateCart.configure({
+    async handler(defaultHandler, payload) {
+      const result = await defaultHandler();
+
+      if (!result.userErrors?.length) {
+        await refreshCartUI();
+      }
+
+      return result;
+    },
+  });
+
+  return true;
+}
+
+const actionsConfigured = configureCartAction();
 
 async function addToCart(form) {
   const button = form.querySelector('[type="submit"]');
   button?.setAttribute("aria-busy", "true");
 
   try {
-    const response = await fetch(form.action, {
-      method: "POST",
-      body: new FormData(form),
-      headers: { Accept: "application/json" },
-    });
+    if (actionsConfigured) {
+      const data = new FormData(form);
+      const variantId = data.get("id");
+      const quantity = Number(data.get("quantity")) || 1;
 
-    if (!response.ok) {
-      throw new Error(`Add to cart failed: HTTP ${response.status}`);
+      const { userErrors } = await window.Shopify.actions.updateCart(
+        {
+          lines: [
+            {
+              merchandiseId: `gid://shopify/ProductVariant/${variantId}`,
+              quantity,
+            },
+          ],
+        },
+        { event: { context: "product" } },
+      );
+
+      if (userErrors?.length) {
+        throw new Error(userErrors[0].message);
+      }
+    } else {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Add to cart failed: HTTP ${response.status}`);
+      }
+
+      await refreshCartUI();
     }
-
-    await partials.refresh("cart-count", "cart-hype");
-    document.querySelector(".cart-hype")?.removeAttribute("hidden");
   } catch (error) {
     console.error(error);
     form.submit();

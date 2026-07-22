@@ -30,10 +30,6 @@
       assign remaining_money = remaining | money
     -%}
 
-    <div class="shipping-bar__track">
-      <div class="shipping-bar__fill" style="--fill: {{ pct }}%"></div>
-    </div>
-
     {% if cart.total_price >= threshold_cents %}
       <p class="shipping-bar__label shipping-bar__label--won">
         {{ 'shipping_bar.unlocked' | t }}
@@ -43,20 +39,24 @@
         {{ 'shipping_bar.remaining' | t: amount: remaining_money }}
       </p>
     {% endif %}
+
+    <div class="shipping-bar__track">
+      <div class="shipping-bar__fill" style="--fill: {{ pct }}%"></div>
+    </div>
   {% endpartial %}
 </div>
 
 {% stylesheet %}
   .shipping-bar {
     position: relative;
-    padding-block-start: 2.3rem;
+    padding-block-end: 2.35rem;
   }
 
   .shipping-bar__delorean {
     position: absolute;
-    inset-block-start: 0.35rem;
+    inset-block-end: 0.1rem;
     inset-inline-start: var(--delorean-x, 0%);
-    translate: -55% 0;
+    translate: -13% 0;
     block-size: 2.2rem;
     inline-size: auto;
     opacity: 0;
@@ -92,7 +92,7 @@
   }
 
   .shipping-bar__label {
-    margin-block: 0.4rem 0;
+    margin-block: 0 0.4rem;
     font-size: 0.85rem;
   }
 

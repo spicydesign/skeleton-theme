@@ -18,6 +18,7 @@
     {% endunless %}
 
     {% # Load and preload the critical CSS %}
+    {{ 'pico.min.css' | asset_url | stylesheet_tag: preload: true }}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
     {{ 'base.css' | asset_url | stylesheet_tag }}
 
@@ -28,12 +29,12 @@
   </head>
 
   <body>
-    {% block 'container' %}
-      {% block 'header' -%}{%- endblock %}
+    {% block 'header' -%}{%- endblock %}
 
+    {% block 'container', tag: 'main' %}
       {{ content_for_layout }}
-
-      {% block 'footer' -%}{%- endblock %}
     {% endblock %}
+
+    {% block 'footer' -%}{%- endblock %}
   </body>
 </html>

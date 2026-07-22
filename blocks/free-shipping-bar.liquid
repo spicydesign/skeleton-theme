@@ -13,6 +13,16 @@
 -%}
 
 <div class="shipping-bar" {{ block.shopify_attributes }}>
+  {% # Rides the progress fill; positioned by demo-stage.js after each refresh so it slides between server-rendered states. %}
+  <img
+    class="shipping-bar__delorean"
+    src="{{ 'pixel.png' | asset_url }}"
+    alt=""
+    aria-hidden="true"
+    width="840"
+    height="565"
+  >
+
   {% partial 'shipping-bar' %}
     {%- liquid
       assign pct = cart.total_price | times: 100 | divided_by: threshold_cents | at_most: 100 | at_least: 0
@@ -37,6 +47,35 @@
 </div>
 
 {% stylesheet %}
+  .shipping-bar {
+    position: relative;
+    padding-block-start: 2.3rem;
+  }
+
+  .shipping-bar__delorean {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: var(--delorean-x, 0%);
+    translate: -60% 0;
+    block-size: 2.1rem;
+    inline-size: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      inset-inline-start 0.7s cubic-bezier(0.22, 0.9, 0.3, 1),
+      opacity 0.45s ease;
+  }
+
+  .shipping-bar__delorean--visible {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shipping-bar__delorean {
+      transition: opacity 0.45s ease;
+    }
+  }
+
   .shipping-bar__track {
     block-size: 0.6rem;
     border-radius: 999px;

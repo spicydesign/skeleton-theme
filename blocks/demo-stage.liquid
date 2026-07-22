@@ -94,7 +94,7 @@
     </div>
   </div>
 
-  <div class="demo-stage__right">
+  <div class="demo-stage__right" style="background-image: url('{{ 'doc-brown.jpg' | asset_url }}');">
     {% if demo_product != blank %}
       <div class="demo-stage__widgets">
       <article class="demo-buy">
@@ -528,8 +528,11 @@
     align-items: flex-start;
     justify-content: center;
     min-height: 0;
-    overflow-y: auto;
-    scrollbar-width: thin;
+    overflow: hidden;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-position: right 1.25rem bottom 0;
+    background-size: auto 15rem;
   }
 
   .demo-stage__widgets {

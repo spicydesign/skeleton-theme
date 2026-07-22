@@ -25,6 +25,7 @@ async function addToCart(event) {
     }
 
     await partials.refresh("cart-count", "cart-hype");
+    document.querySelector(".cart-hype")?.removeAttribute("hidden");
   } catch (error) {
     console.error(error);
     form.submit();

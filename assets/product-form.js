@@ -25,7 +25,15 @@ async function refreshCartUI() {
     }
   });
 
-  if (present.length) await partials.refresh(...present);
+  if (present.length) {
+    const t0 = performance.now();
+    await partials.refresh(...present);
+    document.dispatchEvent(
+      new CustomEvent("demo:refresh-timing", {
+        detail: { ms: performance.now() - t0, regions: present.length },
+      }),
+    );
+  }
   document.querySelector(".cart-hype")?.removeAttribute("hidden");
 }
 

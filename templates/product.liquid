@@ -14,7 +14,9 @@
       {% form 'product', product %}
         {% assign current_variant = product.selected_or_first_available_variant %}
 
-        {% unless product.has_only_default_variant %}
+        {% if product.has_only_default_variant %}
+          <input type="hidden" name="id" value="{{ current_variant.id }}">
+        {% else %}
           <select name="id">
             {% for variant in product.variants %}
               <option
@@ -27,7 +29,7 @@
               </option>
             {% endfor %}
           </select>
-        {% endunless %}
+        {% endif %}
 
         <input type="number" name="quantity" min="1" value="1">
 

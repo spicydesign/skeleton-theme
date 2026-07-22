@@ -121,7 +121,13 @@ document.addEventListener("click", async (event) => {
       body: JSON.stringify({ id: btn.dataset.removeLine, quantity: 0 }),
     });
     if (!response.ok) throw new Error(`Remove line failed: HTTP ${response.status}`);
+    const cartData = await response.json();
     await refreshCartUI();
+    document.dispatchEvent(
+      new CustomEvent("demo:cart-updated", {
+        detail: { itemCount: cartData.item_count, totalCents: cartData.total_price },
+      }),
+    );
   } catch (error) {
     console.error(error);
   } finally {

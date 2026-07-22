@@ -130,6 +130,14 @@ if (stage) {
     setTimeout(() => hotStep(5), 240);
   });
 
+  document.addEventListener("demo:cart-updated", (event) => {
+    const { itemCount, totalCents } = event.detail ?? {};
+    if (itemCount == null) return;
+    if (payloadCount) payloadCount.textContent = itemCount;
+    flash(["payload"]);
+    log("net", "net", `partials re-rendered · cart now ${itemCount} item${itemCount === 1 ? "" : "s"} · $${(totalCents / 100).toFixed(2)}`);
+  });
+
   document.addEventListener("click", async (event) => {
     const btn = event.target.closest?.("[data-refresh-spotlight]");
     if (!btn) return;

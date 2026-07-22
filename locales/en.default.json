@@ -93,7 +93,7 @@
     "unlocked": "Free shipping unlocked!"
   },
   "mini_cart": {
-    "title": "Your cart, live",
+    "title": "Your cart",
     "empty": "Cart is empty — add something!",
     "total": "Total",
     "remove": "Remove item"
